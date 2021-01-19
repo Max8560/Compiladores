@@ -1,0 +1,11 @@
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        AFN a = new AFN();
+        a.cargar_desde("C:/Users/ASUS X412FA/Desktop/ESCOM/Compiladores/Prac1/Auto1.af");
+        System.out.println("Inicial: " + a.ini);
+        System.out.println("Finales: " + a.fin[0]);
+        System.out.println(a.t.get(0).inicial + "->" + a.t.get(0).fin + "," + a.t.get(0).c);
+    }
+}

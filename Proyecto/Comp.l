@@ -1,141 +1,116 @@
+D     [0-9]
+L     [a-zA-Z_]
+H     [a-fA-F0-9]
+E     [Ee][+-]?{D}+
+FS      (f|F|l|L)
+IS      (u|U|l|L)*
+
 %{
-    #include "ETS.tab.h"
-    #include "ETS.tab.c"
+#include <stdio.h>
+
 %}
 
-NUMINT [0-9]+
+%%
+"/*"      { printf("<comment>"); }
+
+"auto"      { printf("<auto>"); }
+"break"     { printf("<break>"); }
+"case"      { printf("<case>"); }
+"char"      { printf("<char>"); }
+"const"     { printf("<const>"); }
+"continue"    { printf("<continue>"); }
+"default"   { printf("<default>"); }
+"do"      { printf("<do>"); }
+"double"    { printf("<double>"); }
+"else"      { printf("<else>"); }
+"enum"      { printf("<enum>"); }
+"extern"    { printf("<extern>"); }
+"float"     { printf("<float>"); }
+"for"     { printf("<for>"); }
+"goto"      { printf("<goto>"); }
+"if"      { printf("<if>"); }
+"int"     { printf("<int>"); }
+"long"      { printf("<long>"); }
+"register"    { printf("<register>"); }
+"return"    { printf("<return>"); }
+"short"     { printf("<short>"); }
+"signed"    { printf("<signed>"); }
+"sizeof"    { printf("<sizeof>"); }
+"static"    { printf("<static>"); }
+"struct"    { printf("<struct>"); }
+"switch"    { printf("<switch>"); }
+"typedef"   { printf("<typedef>"); }
+"union"     { printf("<union>"); }
+"unsigned"    { printf("<unsigned>"); }
+"void"      { printf("<void>"); }
+"volatile"    { printf("<volatile>"); }
+"while"     { printf("<while>"); }
+
+{L}({L}|{D})*   { printf("<var>"); }
+
+0[xX]{H}+{IS}?    { printf("<constant>"); }
+0{D}+{IS}?    { printf("<constant>"); }
+{D}+{IS}?   { printf("<constant>"); }
+L?'(\\.|[^\\'])+' { printf("<constant>"); }
+
+{D}+{E}{FS}?    { printf("<constant>"); }
+{D}*"."{D}+({E})?{FS}?  { printf("<constant>"); }
+{D}+"."{D}*({E})?{FS}?  { printf("<constant>"); }
+
+L?\"(\\.|[^\\"])*\" { printf("<string_literal>"); }
+
+"..."     { printf("<ellipsis>"); }
+">>="     { printf("<right_assign>"); }
+"<<="     { printf("<left_assign>"); }
+"+="      { printf("<add_assign>"); }
+"-="      { printf("<sub_assign>"); }
+"*="      { printf("<mul_assign>"); }
+"/="      { printf("<div_assign>"); }
+"%="      { printf("<mod_assign>"); }
+"&="      { printf("<and_assign>"); }
+"^="      { printf("<xor_assign>"); }
+"|="      { printf("<or_assign>"); }
+">>"      { printf("<right_op>"); }
+"<<"      { printf("<left_op>"); }
+"++"      { printf("<inc_op>"); }
+"--"      { printf("<dec_op>"); }
+"->"      { printf("<ptr_op>"); }
+"&&"      { printf("<and_op>"); }
+"||"      { printf("<or_op>"); }
+"<="      { printf("<le_op>"); }
+">="      { printf("<ge_op>"); }
+"=="      { printf("<eq_op>"); }
+"!="      { printf("<ne_op>"); }
+";"     { printf("<;>"); }
+("{"|"<%")    { printf("{"); }
+("}"|"%>")    { printf("}"); }
+","     { printf(","); }
+":"     { printf(":"); }
+"="     { printf("="); }
+"("     { printf("("); }
+")"     { printf(")"); }
+("["|"<:")    { printf("["); }
+("]"|":>")    { printf("]"); }
+"."     { printf("."); }
+"&"     { printf("&"); }
+"!"     { printf("!"); }
+"~"     { printf("~"); }
+"-"     { printf("-"); }
+"+"     { printf("+"); }
+"*"     { printf("*"); }
+"/"     { printf("/"); }
+"%"     { printf("%"); }
+"<"     { printf("<"); }
+">"     { printf(">"); }
+"^"     { printf("^"); }
+"|"     { printf("|"); }
+"?"     { printf("?"); }
+
+[ \t\v\n\f]   { printf(""); }
+.     { /* ignore bad characters */ }
+
 %%
 
-[I][M][P][R][I][M][I][R][_][T][A][B][L][A] {
-                              return (IMPRIMIR);
+yywrap(){
+  return (1);
 }
-
-[I][N][T] {
-          printf("Declaracion de variable tipo entero\n");
-          return (INT);
-
-}
-
-[S][I] {
-        printf("Inicio de estructura condicional\n");
-        return (SI);
-}
-
-[S][T][R][I][N][G] {
-          printf("Declaracion de variable tipo cadena\n");
-          return (STRING);
-
-}
-[I][M][P][R][I][M][E] {
-          printf("Inicio de funcion imprimir\n");
-          return(IMPRIME);
-}
-
-
-{NUMINT}        {
-		          printf("Numero entero %s\n",yytext);
-                    yylval.entero = atoi(yytext);
-                    return (ENTERO);
-                }
-
-
-"+"|"*"|"/"|"-" {
-		          printf("Signo op %s\n",yytext);
-                    return (yytext[0]);
-                }
-
-
-[mM][oO][dD]    {
-                    printf("Modulo\n");
-                    return(MODULO);
-                }
-
-"("|")"         {
-                    printf("Parentesis\n");
-                    return(yytext[0]);
-                }
-
-\.              {
-                    printf("Punto\n");
-                    return(yytext[0]);
-                }
-
-
-","             {
-                    printf("Divide modulo\n");
-                    return (yytext[0]);
-                }
-
-"="            {
-                    printf("Signo igual\n");
-                    return(yytext[0]);
-               }
-
-[=][=]         {
-                    printf("Comparacion\n");
-                    return(IGUAL);
-               }
-
-[!][=]         {
-                    printf("Comparacion\n");
-                    return(DIFERENTE);
-               }
-
-">"|"<"      {
-                    printf("Comparacion\n");
-                    return(yytext[0]);
-}
-
-"&"|"|" {
-            printf("Operador logico\n");
-            return (yytext[0]);
-}
-
-[a-zA-Z][a-zA-z0-9]* {
-                         yylval.apuntador_s = buscar(t,yytext);
-                         printf("Variable\n");
-                         if (yylval.apuntador_s == NULL)
-                         {
-                              yylval.apuntador_s=(struct Tabla*)malloc(sizeof(struct Tabla));
-                              strcpy(yylval.apuntador_s->nombre,yytext);
-                              yylval.apuntador_s->valorint=0;
-                              strcpy(yylval.apuntador_s->valorcad,"");
-                              yylval.apuntador_s->tipo=0;
-                              insertar(&t, yylval.apuntador_s);
-                              return ID1;
-                         }
-                         else
-                         {
-                                   return ID2;
-                         }
-
-}
-
-
-
-
-
-"\n"            {
-		          printf("Salto de linea\n");
-                    return (yytext[0]);
-                }
-
-
-
-\"[a-zA-z0-9 .,:ñÑ]+\"    {
-                    char *cad;
-                    int tam=strlen(yytext);
-                    cad=(char*)malloc(tam);
-                    int i;
-
-                    for( i = 1; i < tam-1 ; i++ )
-                         cad[i-1] = yytext[i];
-
-                    printf("Cadena: %s\n",cad);
-                    yylval.caracter=(cad);
-                    return(CADENA);
-        }
-
-
-
-%%

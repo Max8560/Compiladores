@@ -1,98 +1,124 @@
 import java.io.*;
-import java.util.regex.*; 
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-class AFN {
-    private int ini, cantfin;
-    private int fin[] = new int[5];
-    private int automata[][] = new int [10][3];
+import javax.sql.rowset.spi.TransactionalWriter;
 
-    public void cargar_desde(String nombre){
-        File archivo = null;
-        FileReader fr = null;
-        String aux = "", auxant = "";
-        int x=0, y=0, revisa=0;
+public class AFN {
+    public int ini;
+    public int fin[] = new int[5];
+    ArrayList<Transicion> t = new ArrayList<Transicion>();
+    Transicion taux = new Transicion(0, 0, 'a');
+
+    public cargar_desde(String nombre){
+        String linea = "";
+        int pos = 0;
+        Pattern p = null;
+        Matcher m = null;
 
         try {
-            archivo = new File (nombre);
-            fr = new FileReader (archivo);
-            int caract = fr.read();
-            //Se lee caracter por caracter
-            while(caract != -1) {
-                cantfin = 0;
-                aux += (char)caract;
+            File archivo = new File(nombre);
+            Scanner sc = new Scanner(archivo);
 
-                //Para obtener el Autómata
-                if(revisa == 2) {
+            while (sc.hasNextLine()) {
+                linea = sc.nextLine();
 
-                    //De donde viene
-                    if((char)caract == '-'){
-                        aux = str.replace("-","");
-                        automata[x][y] = Integer.parseInt(aux);
-                    }
-
-                    //A donde va
-
-                    //Con que se mueve
-
+                //Obtener las transiciones
+                if(pos == 2){
+                    p = Pattern.compile("(\\d+)\\p{Punct}{2}(\\d+)\\p{Punct}(\\D)");
+                    m = p.matcher(linea);
+                    m.find();
+                    t.add(new Transicion(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), m.group(3).charAt(0)));
                 }
 
-                //Para obtener el nodo inicial
-                if(aux.equals("inicial:")){
-                    aux = "";
-                    while((char)caract != '\n'){
-                        caract = fr.read();
-                        aux += (char)caract;
+                //Obtener el inicial
+                if(pos == 1){
+                    p = Pattern.compile("([a-zA-z]+):(\\d+\\s*)+");
+                    m = p.matcher(linea);
+                    while (m.find()){
+                        fin[0] = Integer.parseInt(m.group(2));
                     }
-                    ini = Integer.parseInt(aux.trim());
-                    aux = "";
-                    revisa = 1;
+                    pos = 2;
                 }
 
-                //Para obtener los nodos finales
-                if(aux.equals("finales:")){
-                    x = 0;
-                    aux = "";
-                    while((char)caract != '\n'){
-                        caract = fr.read();
-                        aux += (char)caract;
-                        if((char)caract == ',' || (char)caract == '\n'){
-                            fin[x] = Integer.parseInt(aux.trim());
-                            x++;
-                        }
+                //Obtener los finales
+                if(pos == 0){
+                    p = Pattern.compile("([a-zA-z]+):(\\d+)");
+                    m = p.matcher(linea);
+                    while (m.find()){
+                        ini = Integer.parseInt(m.group(2));
                     }
-                    cantfin++;
-                    aux = "";
-                    revisa = 2;
+                    pos = 1;
                 }
 
-                caract = fr.read();
             }
-        }
-        catch (FileNotFoundException e) {
-            System.out.println("Error: Fichero no encontrado");
-            System.out.println(e.getMessage());
-        }
-        catch (Exception e) {
-            System.out.println("Error de lectura del fichero");
-            System.out.println(e.getMessage());
-        }
-        finally {
-            try {
-                if(fr != null)
-                    fr.close();
-            }
-            catch (Exception e) {
-                System.out.println("Error al cerrar el fichero");
-                System.out.println(e.getMessage());
-            }
+
+            sc.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
         }
     }
-  
-    public static void main(String[] args) throws IOException{
-        AFN a = new AFN();
-        a.cargar_desde("C:/Users/ASUS X412FA/Desktop/ESCOM/Compiladores/Prac1/Auto1.af");
-        System.out.println("Inicial: " + a.ini);
-        System.out.println("Finales: " + a.fin[0]);
-        System.out.println(a.automata[0][0] + "->" + a.automata[0][1] + "," + a.automata[0][2]);
+
+    public agregar_transicion(int inicio, int fin, char simbolo){
+        t.add(new Transicion(inicio, fin, simbolo));
     }
+
+    public eliminar_transicion(int inicio, int fin, char simbolo){
+        t.remove(new Transicion(inicio, fin, simbolo));
+    }
+
+    public obtener_inicial(){
+        return ini;
+    }
+
+    public obtener_finales(){
+        return fin;
+    }
+
+    public establecer_inicial(int estado){
+        ini = estado;
+    }
+
+    public establecer_final(int estado){
+        fin[x] = estado;
+        x++;
+    }
+
+    public esAFN(){
+        return true;
+    }
+
+    public esAFD(){
+        return false;
+    }
+
+    public acepta(String cadena){
+        char c;
+        int pos = ini;
+        int x = 0;
+        c = cadena.charAt(x);
+
+        for(y=0;y<t.size();y++){
+            if((pos == t.get(y).inicial) && (c.equals(t.get(y).c))){
+                pos = t.get(y).fin;
+                x++;
+                c = cadena.charAt(x);
+                y = 0;
+            }
+        }
+
+        if(pos == fin[0]){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public generar_cadena(){
+        String cadena = "";
+        return cadena;
+    }
+
 }
